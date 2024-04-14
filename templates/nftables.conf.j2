@@ -1,0 +1,89 @@
+#!/usr/sbin/nft -f
+
+# {{ ansible_managed }}
+
+{% if nftables_flush_ruleset %}
+flush ruleset
+{% endif %}
+
+{# Create nftables sets (address lists) #}
+{% for set in nftables_sets %}
+define {{ set.name }} = {
+    {{ set.hosts | join(', \n') | indent(width=4, first=False) }}
+}
+
+{% endfor %}
+
+table inet filter {
+    chain input {
+        type filter hook input priority filter
+        policy drop
+
+        iif lo counter accept comment "Accept localhost traffic"
+        ct state { established, related } counter accept comment "Accept traffic originated from us"
+        ct state invalid counter drop comment "Drop invalid connections"
+
+        ip protocol icmp icmp type {
+            echo-request, # Type 0
+            echo-reply, # Type 8
+            destination-unreachable, # Type 3
+            time-exceeded, # Type 11
+            parameter-problem # Type 12
+        } counter accept comment "Accept ICMP"
+
+        ip6 nexthdr icmpv6 icmpv6 type {
+            destination-unreachable,  # type 1
+            packet-too-big,  # type 2
+            time-exceeded,  # type 3
+            parameter-problem,  # type 4
+            echo-request,  # type 128
+            echo-reply,  # type 129
+        } counter accept comment "Accept basic IPv6 functionality"
+
+        ip6 nexthdr icmpv6 icmpv6 type {
+            nd-router-solicit,  # type 133
+            nd-router-advert,  # type 134
+            nd-neighbor-solicit,  # type 135
+            nd-neighbor-advert,  # type 136
+        } ip6 hoplimit 255 counter accept \
+        comment "Allow IPv6 SLAAC"
+
+        ip6 nexthdr icmpv6 icmpv6 type {
+            mld-listener-query,  # type 130
+            mld-listener-report,  # type 131
+            mld-listener-reduction,  # type 132
+            mld2-listener-report,  # type 143
+        } ip6 saddr fe80::/10 counter accept \
+        comment "Allow IPv6 multicast listener discovery on link-local"
+
+{% if nftables_allow_dhcpv6 %}
+        ip6 saddr fe80::/10 udp sport 547 udp dport 546 counter accept \
+        comment "Accept DHCPv6 replies from IPv6 link-local addresses"
+{% endif %}
+
+{# Allowed ports to host #}
+{% for port in nftables_open_ports_default + nftables_open_ports %}
+        {{ port.protocol }} dport {{ port.port }} {% if port.saddr_v4 is defined %}ip saddr {{ port.saddr_v4 }} {% endif %}{% if port.saddr_v6 is defined %}ip6 saddr {{ port.saddr_v6 }} {% endif %}counter accept{% if port.comment is defined %} comment "{{ port.comment }}"{% endif %} 
+{% endfor %}
+    }
+
+    chain forward {
+        type filter hook forward priority filter
+        policy {{ nftables_forward_chain_policy }}
+{% for rule in nftables_forward_chain_rules %}
+        {{ rule }}
+{% endfor %}
+    }
+}
+
+{% if nftables_enable_nat_table %}
+table ip nat {
+    chain prerouting {
+        type nat hook prerouting priority dstnat
+        policy accept
+{% for rule in nftables_dnat_rules %}
+        iif {{ rule.interface }} {{ rule.protocol }} dport {{ rule.port }} {% if port.saddr_v4 is defined %}ip saddr {{ port.saddr_v4 }} {% endif %}counter dnat to {{ rule.destination }}{% if rule.comment is defined %} comment "{{ rule.comment }}"{% endif %} 
+{% endfor %}
+    }
+}
+{% endif %}

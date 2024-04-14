@@ -1,0 +1,5 @@
+---
+
+# RedHat-based distros
+
+nftables_configuration_file: "/etc/sysconfig/nftables.conf"

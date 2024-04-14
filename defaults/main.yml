@@ -1,0 +1,47 @@
+---
+
+# nftables service
+nftables_service_state: started
+nftables_service_enabled: true
+
+# Configuration file path - set by distribution fact in vars/
+nftables_configuration_file: "/etc/nftables.nft"
+
+# Flush ruleset by default (recommended to be true)
+nftables_flush_ruleset: true
+
+# Allow DHCPv6
+nftables_allow_dhcpv6: true
+
+# Open ports, default open ports
+nftables_open_ports_default: []
+nftables_open_ports: []
+  # - port: 22
+  #   protocol: tcp
+  #   counter: true
+  #   comment: SSH
+
+## Forward chain
+
+nftables_forward_chain_policy: drop
+nftables_forward_chain_rules: []
+
+## NAT Table
+
+# Enable nat table
+nftables_enable_nat_table: false
+
+# DNAT rules
+nftables_dnat_rules: []
+  # - interface: eth0
+  #   protocol: tcp
+  #   port: 8080
+  #   counter: true
+  #   destination: "192.168.1.10"
+
+
+## Sets
+
+nftables_sets: []
+  # - name: ALLOWED_SSH_HOSTS
+  #   hosts: ["192.168.10.0/24", "192.168.20.0/24", "8.8.8.8"]

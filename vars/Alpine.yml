@@ -1,0 +1,5 @@
+---
+
+# Alpine Linux
+
+nftables_configuration_file: "/etc/nftables.nft"
