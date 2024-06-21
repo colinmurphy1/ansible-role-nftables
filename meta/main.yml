@@ -1,2 +1,21 @@
 ---
+galaxy_info:
+  role_name: nftables
+  namespace: cmurphy
+  author: Colin Murphy
+  description: nftables firewall role
+  license: MIT
+  min_ansible_version: "2.5"
+  platforms:
+    - name: Debian
+      version: all
+    - name: Ubuntu
+      version: all
+    - name: Alpine
+      version: all
+  galaxy_tags:
+    - nftables
+    - firewall
+    - nft
+    - iptables
 dependencies: []

@@ -1,24 +1,24 @@
 ---
 
 - name: Include OS-specific vars
-  include_vars: "{{ ansible_os_family }}.yml"
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
 
 - name: Install nftables
-  package:
+  ansible.builtin.package:
     name: nftables
     state: present
 
-- name: nftables service
-  service:
-    name: nftables
-    state: "{{ nftables_service_state }}"
-    enabled: "{{ nftables_service_enabled }}"
-
 - name: Generate configuration
-  template:
+  ansible.builtin.template:
     src: nftables.conf.j2
     dest: "{{ nftables_configuration_file }}"
     mode: '0644'
     owner: root
     group: root
-  notify: reload nftables
+  notify: Reload nftables
+
+- name: Nftables service
+  ansible.builtin.service:
+    name: nftables
+    state: "{{ nftables_service_state }}"
+    enabled: "{{ nftables_service_enabled }}"
