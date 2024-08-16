@@ -1,6 +1,6 @@
 #!/usr/sbin/nft -f
 
-# {{ ansible_managed }}
+{{ ansible_managed | comment }}
 
 {% if nftables_flush_ruleset %}
 flush ruleset
