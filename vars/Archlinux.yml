@@ -1,0 +1,5 @@
+---
+
+# Arch Linux
+
+nftables_configuration_file: "/etc/nftables.conf"
