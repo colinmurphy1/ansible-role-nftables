@@ -13,6 +13,8 @@ galaxy_info:
       version: all
     - name: Alpine
       version: all
+    - name: ArchLinux
+      version: all
   galaxy_tags:
     - nftables
     - firewall
