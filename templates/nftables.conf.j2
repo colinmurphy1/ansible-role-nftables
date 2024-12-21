@@ -61,6 +61,9 @@ table inet filter {
         comment "Accept DHCPv6 replies from IPv6 link-local addresses"
 {% endif %}
 
+{# https://superuser.com/questions/355486/what-is-the-range-of-ports-that-is-usually-used-in-the-traceroute-command #}
+        udp dport 33434-33529 counter reject comment "Allow traceroute on *nix systems"
+
 {# Allowed ports to host #}
 {% for port in nftables_open_ports_default + nftables_open_ports %}
         {{ port.protocol }} dport {{ port.port }} {% if port.saddr_v4 is defined %}ip saddr {{ port.saddr_v4 }} {% endif %}{% if port.saddr_v6 is defined %}ip6 saddr {{ port.saddr_v6 }} {% endif %}counter accept{% if port.comment is defined %} comment "{{ port.comment }}"{% endif %} 
